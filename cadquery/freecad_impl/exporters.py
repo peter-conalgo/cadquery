@@ -234,7 +234,8 @@ def getSVG(shape,opts=None):
         Export a shape to SVG
     """
 
-    d = {'width':800,'height':240,'marginLeft':200,'marginTop':20}
+    d = {'width':800,'height':240,'marginLeft':200,'marginTop':20,
+            'include_legend':True}
 
     if opts:
         d.update(opts)
@@ -274,23 +275,25 @@ def getSVG(shape,opts=None):
     for p in visiblePaths:
         visibleContent += PATHTEMPLATE % p
 
-    svg =  SVG_TEMPLATE % (
-        {
-            "unitScale" : str(unitScale),
-            "strokeWidth" : str(1.0/unitScale),
-            "hiddenContent" :  hiddenContent ,
-            "visibleContent" :visibleContent,
-            "xTranslate" : str(xTranslate),
-            "yTranslate" : str(yTranslate),
-            "width" : str(width),
-            "height" : str(height),
-            "textboxY" :str(height - 30),
-            "uom" : str(uom)
-        }
-    )
-    #svg = SVG_TEMPLATE % (
-    #    {"content": projectedContent}
-    #)
+    context = {
+                "unitScale" : str(unitScale),
+                "strokeWidth" : str(1.0/unitScale),
+                "hiddenContent" :  hiddenContent ,
+                "visibleContent" :visibleContent,
+                "xTranslate" : str(xTranslate),
+                "yTranslate" : str(yTranslate),
+                "width" : str(width),
+                "height" : str(height),
+                "textboxY" :str(height - 30),
+                "uom" : str(uom)
+            }
+    svg =  SVG_TEMPLATE % context
+
+    if d['include_legend']:
+        svg += SVG_LEGEND % context
+
+    svg += '</svg>'
+
     return svg
 
 
@@ -371,6 +374,9 @@ SVG_TEMPLATE = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 %(visibleContent)s
        </g>
     </g>
+"""
+
+SVG_LEGEND = """
     <g transform="translate(20,%(textboxY)s)" stroke="rgb(0,0,255)">
         <line x1="30" y1="-30" x2="75" y2="-33" stroke-width="3" stroke="#000000" />
          <text x="80" y="-30" style="stroke:#000000">X </text>
@@ -385,7 +391,6 @@ SVG_TEMPLATE = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
             <text x="0" y="20" style="stroke:#000000">1  %(uom)s </text>
         -->
     </g>
-</svg>
 """
 
 PATHTEMPLATE="\t\t\t<path d=\"%s\" />\n"
