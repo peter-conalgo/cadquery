@@ -235,7 +235,8 @@ def getSVG(shape,opts=None):
     """
 
     d = {'width':800,'height':240,'marginLeft':200,'marginTop':20,
-            'include_legend':True}
+            'legend': True, 'hiddleLines': True,
+            'view': (-1.75, 1.1, 5) }
 
     if opts:
         d.update(opts)
@@ -248,8 +249,7 @@ def getSVG(shape,opts=None):
     marginLeft=float(d['marginLeft'])
     marginTop=float(d['marginTop'])
 
-    #TODO:  provide option to give 3 views
-    viewVector = FreeCAD.Base.Vector(-1.75,1.1,5)
+    viewVector = FreeCAD.Base.Vector(d['view'])
     (visibleG0,visibleG1,hiddenG0,hiddenG1) = Drawing.project(shape,viewVector)
 
     (hiddenPaths,visiblePaths) = getPaths(Drawing.projectToSVG(shape,viewVector,"ShowHiddenLines")) #this param is totally undocumented!
@@ -268,16 +268,19 @@ def getSVG(shape,opts=None):
 
     #compute paths ( again -- had to strip out freecad crap )
     hiddenContent = ""
-    for p in hiddenPaths:
-        hiddenContent += PATHTEMPLATE % p
+    if d['hiddleLines']:
+        for p in hiddenPaths:
+            hiddenContent += PATHTEMPLATE % p
 
     visibleContent = ""
     for p in visiblePaths:
         visibleContent += PATHTEMPLATE % p
 
+    strokeWidth = d.get('strokeWidth', str(1.0/unitScale))
+
     context = {
                 "unitScale" : str(unitScale),
-                "strokeWidth" : str(1.0/unitScale),
+                "strokeWidth" : strokeWidth,
                 "hiddenContent" :  hiddenContent ,
                 "visibleContent" :visibleContent,
                 "xTranslate" : str(xTranslate),
@@ -289,7 +292,7 @@ def getSVG(shape,opts=None):
             }
     svg =  SVG_TEMPLATE % context
 
-    if d['include_legend']:
+    if d['legend']:
         svg += SVG_LEGEND % context
 
     svg += '</svg>'
